@@ -153,6 +153,8 @@ When you have correctly produced `Majors`, write a command that produces the mon
 
 [4] Which major species are seen in good numbers for at least 6 months of the year? (Hint: `n_distinct()` and `>= 6`.)
 
+Arguably, the only species that is not seen in good numbers for at least 6 months of the year is the tree swallow.
+
 We now want to produce a month-by-month count for each of the major species, and then construct a chart to tell the story of what time of year the various species appear.
 
 ```{r}
@@ -163,6 +165,13 @@ ByMonth <-
     summarize(count = n()) %>%
     filter(SpeciesName %in% Majors$Species)
 ByMonth
+
+ByMonth %>%
+  group_by(SpeciesName) %>%
+  summarize(
+    MonthsPerYear   = n(),
+    SixMonthsOrMore = n_distinct(Month) >= 6
+  )
 ```
 
 Now use the ggplot template below to generate the desired graph. (Remark you can also use esquisser or mplot to create a line chart instead of the barchart)
@@ -211,3 +220,5 @@ According to the graph, we can answer the questions posed:
 * `06` Tree Swallow
 
 ##### 4. Which major species are seen in good numbers for at least 6 months of the year?
+
+Arguably, the only species that is not seen in good numbers for at least 6 months of the year is the tree swallow.
