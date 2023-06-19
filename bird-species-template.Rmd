@@ -1,28 +1,24 @@
 ---
-title: "Activity: Bird Species"
-author: "Your Names Here"
-date: "DUE DATE "
+title:  "Activity: Bird Species"
+author: "Dave Friedman"
+date:   "07 Jun 2023"
 output: html_notebook
 ---
-
 
 # Set Up
 
 ```{r}
-# Load `tidyverse` and `dcData` packages
+library(dcData)
+library(tidyverse)
 
-
-
-
-# Load the `OrdwayBirds` data set into your RStudio environment from the `dcData` package
-
-
-
+data('OrdwayBirds', package = 'dcData')
 
 # Show a few commands used to inspect the data set a few different ways
+OrdwayBirds %>%
+  head()
 
-
-
+OrdwayBirds %>%
+  count()
 ```
 
 # Activity
@@ -122,12 +118,12 @@ Now use the ggplot template below to generate the desired graph. (Remark you can
 ```{r}
 # ggplot commands
 
-ByMonth %>% 
-  ggplot(aes(x = Month, y = count, color = Species)) + 
-  geom_line()
+# ByMonth %>% 
+#   ggplot(aes(x = Month, y = count, color = Species)) + 
+#   geom_line()
 
-ByMonth %>% ggplot(aes(x=Month,y=count ,fill=Species)) +
-  geom_bar(stat='identity',position='stack', width=.9) 
+# ByMonth %>% ggplot(aes(x=Month,y=count ,fill=Species)) +
+#   geom_bar(stat='identity',position='stack', width=.9) 
 
 ```
 

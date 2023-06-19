@@ -8,7 +8,6 @@
 - submit the completed RMarkdown file (.Rmd) and R Notebook (.nb.html) to Canvas before deadline
 - Remember to push your changes to GitHub
 
-
 ## Grading
 
 Assignment is worth a total of 10 points
