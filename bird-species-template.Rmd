@@ -10,15 +10,21 @@ output: html_notebook
 ```{r}
 library(dcData)
 library(tidyverse)
+data('OrdwayBirds',        package = 'dcData')
+data('OrdwaySpeciesNames', package = 'dcData')
 
-data('OrdwayBirds', package = 'dcData')
-
-# Show a few commands used to inspect the data set a few different ways
 OrdwayBirds %>%
   head()
 
 OrdwayBirds %>%
   count()
+
+OrdwayBirds %>%
+  select(Month, Day) %>%
+  head()
+
+OrdwaySpeciesNames %>%
+  filter(is.na(SpeciesNameCleaned))
 ```
 
 # Activity
@@ -30,90 +36,136 @@ When you're finished with this activity, you will have a graph that shows what t
 Before we begin, the book gives us some instructions to select a few key variables and clean up the date formatting.  Use the commands given in the book, but be sure to study the functions used so you know what is happening.  In this case, we select `SpeciesName`, `Month`, and `Day`. Then a `mutate()` command converts each variable to character, and then converts the resulting "character string" to a number.
 
 ```{r}
-# Get the data table & clean up dates (see Data Computing eBook)
-
-
-
-# Inspect resulting data
-
-
+OrdwayBirds <-
+  OrdwayBirds %>%
+  select(SpeciesName, Month, Day) %>%
+  mutate(
+    Month = as.numeric(as.character(Month)),
+    Day   = as.numeric(as.character(Day))
+  )
+OrdwayBirds %>%
+  head()
 ```
-
-
 
 ### Step 1
 
+[1] Including misspellings, how many different species are there in the `OrdwayBirds` data?
 
+There are 275 unique values of the variable `SpeciesName`. This reduces to 268 after dropping the following invalid values:
+* `''`
+* `'-lost-'`
+* `'-missing-'`
+* `'13:00:00'`
+* `'[Nothing, just dashes]'`
+* `'lost'`
+* `'none'`
 
+[2] Consider the `OrdwaySpeciesNames` data frame also found in the `dcData` package as well. How many distinct species are there in the `SpeciesNameCleaned` variable in `OrdwaySpeciesNames`? You will find it helpful to use `n_distinct()` a reduction function, which counts the number of unique values in a variable.
+
+There are 108 unique values of the variable `SpeciesNameCleaned` after accounting for the value `NA`.
 
 ```{r}
 # unique species in original data (including mis-spellings)
-
-
+OrdwayBirds %>%
+  select(SpeciesName) %>%
+    n_distinct()
 
 # unique species in the clean list
-
-
-
+OrdwaySpeciesNames %>%
+  select(SpeciesNameCleaned) %>%
+    n_distinct()
 ```
-
 
 ### Step 2
   
+Use the `OrdwaySpeciesNames` table to create a new data frame that corrects the misspellings in `SpeciesNames`. This can be done easily using the `inner_join()` data verb. Look at the names of the variables in `OrdwaySpeciesNames` and `OrdwayBirds`.
 
+[1] Which variable(s) was used for matching cases?
 
+The variable `SpeciesName` was used for matching cases.
+
+[2] What were the variable(s) that will be added?
+
+The variables `SpeciesNameCleaned` (renamed to `Species`), `Month`, and `Day` will be added.
 
 ```{r}
 # inspect OrdwaySpeciesNames
-
+OrdwaySpeciesNames %>%
+  head()
 
 # inner join
-
-
-
+Corrected <-
+  OrdwayBirds %>%
+    inner_join(y = OrdwaySpeciesNames) %>%
+    select(Species = SpeciesNameCleaned, Month, Day) %>%
+    na.omit()
 
 # inspect the data after the join
-
-
+Corrected %>%
+  head()
 ```
-
 
 ### Step 3
 
 We want to identify the top 5-6 bird species sighted at the Katherine Ordway Natural History Study Area.
 
+Call the variable that contains the total `count`. Arrange this into descending order from the species with the most birds, and look through the list. (Hint: Remember `n()`. Also, one of the arguments to one of the data verbs will be `desc(count)` to arrange the cases into descending order. Display the top 10 species in terms of the number of bird captures.) Define for yourself a "major species" as a species with more than a particular threshold count. Set your threshold so that there are 5 or 6 species designated as major. Filter to produce a data frame with only the birds that belong to a major species. Save the output in a table called `Majors`. (Hint: Remember that summary functions can be used case-by-case when filtering or mutating a data frame that has been grouped.)
+
+[1] How many bird captures are reported for each of the corrected species?
+
+See below for the result (major species threshold >= 1000).
+
 ```{r}
 # count sightings by species in descending order
-
-
-
-
 # a hint in the text book recommends displaying the top 10 species to choose our threshold
-
-
-
 # define a sightings threshold; produce a table with only birds belonging to major species
-
-
-
-
+Majors <-
+  Corrected %>%
+    group_by(Species) %>%
+    summarize(count = n()) %>%
+    arrange(desc(count)) %>%
+    filter(count >= 1000)
+Majors
 ```
 
-
 ### Step 4
+
+When you have correctly produced `Majors`, write a command that produces the month-by-month count of each of the major species. Call this table `ByMonth`. Display this month-by-month count with a bar chart arranged in a way that you think tells the story of what time of year the various species appear. You can use `mplot()` to explore different possibilies. (Warning: `mplot()` and similar interactive functions should not appear in your Rmd file, it needs to be used interactively from the console. Use the "Show Expression" button in `mplot()` to create an expression that you can cut and paste into a chunk in your Rmd document, so that the graph gets created when you compile it.) Once you have the graph, use it to answer these questions:
+
+[1] Which species are present year-round?
+
+* American Goldfinch (11-12 mo)
+* Black-capped Chickadee (12 mo)
+
+[2] Which species are migratory, that is, primarily present in one or two seasons?
+
+* Field Sparrow (6 mo)
+* Slate-colored Junco (8-9 mo)
+* Tree Swallow (3-5 mo)
+
+[3] What is the peak month for each major species?
+
+* `10` American Goldfinch
+* `11` Black-capped Chickadee
+* `05` Field Sparrow
+* `10` Slate-colored Junco
+* `06` Tree Swallow
+
+[4] Which major species are seen in good numbers for at least 6 months of the year? (Hint: `n_distinct()` and `>= 6`.)
 
 We now want to produce a month-by-month count for each of the major species, and then construct a chart to tell the story of what time of year the various species appear.
 
 ```{r}
 # prepare glyph-ready data table called `ByMonth`
-
-
-
+ByMonth <-
+  OrdwayBirds %>%
+    group_by(SpeciesName, Month = as.integer(Month)) %>%
+    summarize(count = n()) %>%
+    filter(SpeciesName %in% Majors$Species)
+ByMonth
 ```
 
 Now use the ggplot template below to generate the desired graph. (Remark you can also use esquisser or mplot to create a line chart instead of the barchart)
-
-
 
 ```{r}
 # ggplot commands
@@ -125,29 +177,37 @@ Now use the ggplot template below to generate the desired graph. (Remark you can
 # ByMonth %>% ggplot(aes(x=Month,y=count ,fill=Species)) +
 #   geom_bar(stat='identity',position='stack', width=.9) 
 
+ByMonth %>%
+  ggplot() +
+    geom_bar(
+      mapping     = aes(x = Month, y = count, fill = SpeciesName),
+      na.rm       = FALSE,
+      position    = 'stack',
+      show.legend = TRUE,
+      stat        = 'identity'
+    ) +
+    scale_x_continuous(breaks = 1:12)
 ```
 
 According to the graph, we can answer the questions posed:
 
 ##### 1. Which species are present year-round?  
 
-
+* American Goldfinch (11-12 mo)
+* Black-capped Chickadee (12 mo)
 
 ##### 2. Which species are migratory, that is, primarily present in one or two seasons?
 
-
-
+* Field Sparrow (6 mo)
+* Slate-colored Junco (8-9 mo)
+* Tree Swallow (3-5 mo)
 
 ##### 3. What is the peak month for each major species? (bullet list)
 
-
-
+* `10` American Goldfinch
+* `11` Black-capped Chickadee
+* `05` Field Sparrow
+* `10` Slate-colored Junco
+* `06` Tree Swallow
 
 ##### 4. Which major species are seen in good numbers for at least 6 months of the year?
-
-
-
-```{r}
-
-```
-
